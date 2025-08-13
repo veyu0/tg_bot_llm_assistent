@@ -11,7 +11,7 @@ class ParsedData(Base):
     url = Column(String)
     name = Column(String)
     for_whom = Column(String)
-    problem_solved = Column(String)
+
 
 class Database:
     def __init__(self, db_path: str):
@@ -21,9 +21,22 @@ class Database:
         self.Session = sessionmaker(bind=self.engine)
         self.logger.info("Database initialized")
 
-    def add_project(self, url: str, name: str, for_whom: str, problem_solved: str):
+    def add_project(self, url: str, name: str) -> None:
         with self.Session() as session:
-            data = ParsedData(url=url, name=name, for_whom=for_whom, problem_solved=problem_solved)
+            data = ParsedData(url=url, name=name)
             session.add(data)
             session.commit()
             self.logger.info("Data successfully added to database")
+
+    def get_info_from_db(self) -> list:
+        with self.Session() as session:
+            projects = session.query(ParsedData).all()
+            self.logger.info(f"Retrieved {len(projects)} projects from database")
+            return [
+                {
+                    'url': project.url,
+                    'name': project.name,
+                    # 'for_whom': project.for_whom,
+                    # 'problem_solved': project.problem_solved
+                } for project in projects
+            ]
